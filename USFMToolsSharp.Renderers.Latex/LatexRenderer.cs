@@ -14,7 +14,8 @@ namespace USFMToolsSharp.Renderers.Latex
         private USFMDocument inputDocument;
         private LatexRendererConfig config;
         private bool NotFirstChapter;
-        private Stack<Marker> currentHierachy;
+        private CMarker previousChapter;
+        private Marker previousMarker;
         public LatexRenderer()
         {
             config = new LatexRendererConfig();
@@ -30,7 +31,7 @@ namespace USFMToolsSharp.Renderers.Latex
             StringBuilder output = new StringBuilder();
             currentChapterLabel = "";
             NotFirstChapter = false;
-            currentHierachy = new Stack<Marker>();
+            previousChapter = null;
 
             output.AppendLine("\\documentclass{article}");
             output.AppendLine("\\usepackage[margin=0.5in]{geometry}");
@@ -63,7 +64,6 @@ namespace USFMToolsSharp.Renderers.Latex
 
         public string RenderMarker(Marker input, StringBuilder output)
         {
-            currentHierachy.Push(input);
             switch (input)
             {
                 case PMarker _:
@@ -87,14 +87,11 @@ namespace USFMToolsSharp.Renderers.Latex
                     }
                     else
                     {
-                        var pathToChapter = inputDocument.GetHierarchyToMarker(cMarker);
-                        var parent = pathToChapter[pathToChapter.Count - 2];
-                        var olderSibling = parent.Contents[parent.Contents.IndexOf(cMarker) - 1];
-
-                        if (olderSibling is CMarker)
+                        // At this point current chapter hierachy refers to the previous chapter
+                        if (previousMarker != null && previousMarker is CMarker && previousChapter != null)
                         {
-                            var pathToLastChild = parent.Contents[parent.Contents.IndexOf(cMarker) - 1].GetTypesPathToLastMarker();
-                            if (!pathToLastChild.Contains(typeof(QMarker)) && !pathToLastChild.Contains(typeof(MSMarker)) && !pathToLastChild.Contains(typeof(MMarker)))
+                            var previousChapterHeirarchy = previousChapter.GetTypesPathToLastMarker();
+                            if (!previousChapterHeirarchy.Contains(typeof(QMarker)) && !previousChapterHeirarchy.Contains(typeof(MSMarker)) && !previousChapterHeirarchy.Contains(typeof(MMarker)))
                             {
                                 output.AppendLine("\\newline");
                             }
@@ -110,6 +107,8 @@ namespace USFMToolsSharp.Renderers.Latex
                         chapterMarker = $"{currentChapterLabel} {cMarker.PublishedChapterMarker}";
                     }
                     output.AppendLine($"\\Large{{{chapterMarker.Trim()}}}");
+
+                    previousChapter = cMarker;
 
                     foreach (Marker marker in input.Contents)
                     {
@@ -353,7 +352,7 @@ namespace USFMToolsSharp.Renderers.Latex
                     UnrenderableMarkers.Add(input.Identifier);
                     break;
             }
-            currentHierachy.Pop();
+            previousMarker = input;
             return "";
         }
     }

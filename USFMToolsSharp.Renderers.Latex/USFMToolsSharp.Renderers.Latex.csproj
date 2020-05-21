@@ -1,11 +1,28 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netstandard1.0</TargetFramework>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <Authors>@rbnswartz</Authors>
+    <Company>Wycliffe Associates</Company>
+    <Version>0.0.1</Version>
+    <Copyright>2020 Wycliffe Associates</Copyright>
+    <Description>A Latex renderer for USFM</Description>
+    <RepositoryUrl>https://github.com/Wycliffeassociates/USFMToolsSharp.Renderers.Latex</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/Wycliffeassociates/USFMToolsSharp.Renderers.Latex</PackageProjectUrl>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\USFMToolsSharp\USFMToolsSharp\USFMToolsSharp.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
+  
 
 </Project>
