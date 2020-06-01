@@ -147,7 +147,7 @@ namespace USFMToolsSharp.Renderers.Latex
                     }
                     break;
                 case TextBlock textBlock:
-                    output.AppendLine(textBlock.Text);
+                    output.Append(textBlock.Text);
                     break;
                 case BDMarker bdMarker:
                     output.AppendLine("\\begin{textbd}");
@@ -249,7 +249,7 @@ namespace USFMToolsSharp.Renderers.Latex
                 case FKMarker fKMarker:
                     output.Append($" {fKMarker.FootNoteKeyword.ToUpper()}: ");
                     break;
-                case FQAMarker _:
+                case FQAMarker fQAMarker:
                     foreach (Marker marker in input.Contents)
                     {
                         RenderMarker(marker, output);
