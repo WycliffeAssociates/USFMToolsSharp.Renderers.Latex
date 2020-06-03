@@ -14,6 +14,7 @@ namespace USFMToolsSharp.Renderers.Latex
         private USFMDocument inputDocument;
         private LatexRendererConfig config;
         private bool NotFirstChapter;
+        private bool NotFirstVerse;
         private CMarker previousChapter;
         private Marker previousMarker;
         public LatexRenderer()
@@ -49,7 +50,7 @@ namespace USFMToolsSharp.Renderers.Latex
 
             foreach (Marker marker in input.Contents)
             {
-                output.Append(RenderMarker(marker, output));
+                RenderMarker(marker, output);
             }
 
             if(config.Columns != 1)
@@ -67,6 +68,7 @@ namespace USFMToolsSharp.Renderers.Latex
             switch (input)
             {
                 case PMarker _:
+                    NotFirstVerse = false;
                     if (input.Contents.Count == 0)
                     {
                         break;
@@ -78,6 +80,7 @@ namespace USFMToolsSharp.Renderers.Latex
                     }
                     break;
                 case CMarker cMarker:
+                    NotFirstVerse = true;
                     if (config.SeparateChapters)
                     {
                         if (NotFirstChapter)
@@ -97,16 +100,16 @@ namespace USFMToolsSharp.Renderers.Latex
                             }
                         }
                     }
-                    string chapterMarker = cMarker.PublishedChapterMarker;
+                    string chapterMarkerText = cMarker.PublishedChapterMarker;
                     if (cMarker.GetChildMarkers<CLMarker>().Count > 0)
                     {
-                        chapterMarker = cMarker.CustomChapterLabel;
+                        chapterMarkerText = cMarker.CustomChapterLabel;
                     }
                     else if (currentChapterLabel != null)
                     {
-                        chapterMarker = $"{currentChapterLabel} {cMarker.PublishedChapterMarker}";
+                        chapterMarkerText = $"{currentChapterLabel} {cMarker.PublishedChapterMarker}";
                     }
-                    output.AppendLine($"\\Large{{{chapterMarker.Trim()}}}");
+                    output.AppendLine($"\\Large{{{chapterMarkerText.Trim()}}}");
 
                     previousChapter = cMarker;
 
@@ -122,23 +125,31 @@ namespace USFMToolsSharp.Renderers.Latex
                     currentChapterLabel = cLMarker.Label;
                     break;
                 case VMarker vMarker:
+                    if (config.SeparateVerses && NotFirstVerse)
+                    {
+                        output.AppendLine("\\linebreak");
+                    }
                     output.AppendLine($"\\textsuperscript{{{vMarker.VerseCharacter}}}");
                     foreach (Marker marker in input.Contents)
                     {
                         RenderMarker(marker, output);
                     }
+                    NotFirstVerse = true;
                     break;
                 case QMarker qMarker:
                     if (input.Contents.Count == 0)
                     {
                         break;
                     }
+                    NotFirstVerse = false;
                     output.AppendLine("\\begin{center}");
                     foreach (Marker marker in input.Contents)
                     {
                         RenderMarker(marker, output);
                     }
                     output.AppendLine("\\end{center}");
+
+                    NotFirstVerse = false;
                     break;
                 case MMarker mMarker:
                     foreach (Marker marker in input.Contents)
