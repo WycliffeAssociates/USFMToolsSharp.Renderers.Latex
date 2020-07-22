@@ -36,6 +36,12 @@ namespace USFMToolsSharp.Renderers.Latex
             output.AppendLine("\\documentclass{article}");
             output.AppendLine("\\usepackage[margin=0.5in]{geometry}");
             output.AppendLine("\\usepackage{multicol}");
+            if (!string.IsNullOrEmpty(config.Font))
+            {
+                output.AppendLine("\\usepackage{fontspec}");
+                output.AppendLine("\\usepackage{polyglossia}");
+                output.AppendLine($"\\setmainfont{{{config.Font}}}");
+            }
             output.AppendLine("\\begin{document}");
             output.AppendLine("\\pagenumbering{gobble}");
             if(config.LineSpacing != 1.0)
