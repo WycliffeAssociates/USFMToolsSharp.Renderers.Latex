@@ -10,5 +10,6 @@ namespace USFMToolsSharp.Renderers.Latex
         public double LineSpacing = 1.0;
         public bool SeparateChapters = false;
         public bool SeparateVerses = false;
+        public string Font = "";
     }
 }
