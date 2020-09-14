@@ -16,6 +16,19 @@ namespace USFMToolsSharp.Renderers.Latex
         private bool NotFirstChapter;
         private CMarker previousChapter;
         private Marker previousMarker;
+        private readonly List<(string find, string replaceWith)> escapeMapping = new List<(string, string)>()
+        {
+            ("\\", " \\textbackslash "),
+            ("&", "\\&"),
+            ("%", "\\%"),
+            ("$", "\\$"),
+            ("#", "\\#"),
+            ("_", "\\_"),
+            ("{", "\\{"),
+            ("}", "\\}"),
+            ("~", "\\textasciitilde"),
+            ("^", "\\textasciicircum"),
+        };
         public LatexRenderer()
         {
             config = new LatexRendererConfig();
@@ -153,7 +166,7 @@ namespace USFMToolsSharp.Renderers.Latex
                     }
                     break;
                 case TextBlock textBlock:
-                    output.AppendLine(textBlock.Text);
+                    output.AppendLine(EscapeString(textBlock.Text));
                     break;
                 case BDMarker bdMarker:
                     output.AppendLine("\\begin{textbd}");
@@ -212,11 +225,11 @@ namespace USFMToolsSharp.Renderers.Latex
                     output.AppendLine("}");
                     break;
                 case HMarker hMarker:
-                    output.AppendLine("\\centerline{\\Large{" + hMarker.HeaderText + "}}");
+                    output.AppendLine("\\centerline{\\Large{" + EscapeString(hMarker.HeaderText) + "}}");
                     break;
                 case MTMarker mTMarker:
                     output.AppendLine("\\newpage");
-                    output.AppendLine($"\\centerline{{{mTMarker.Title}}}");
+                    output.AppendLine($"\\centerline{{{EscapeString(mTMarker.Title)}}}");
                     currentChapterLabel = null;
                     break;
                 case FMarker fMarker:
@@ -227,7 +240,7 @@ namespace USFMToolsSharp.Renderers.Latex
                             output.Append($"\\footnote{{");
                             break;
                         default:
-                            output.Append($"\\footnote[{fMarker.FootNoteCaller}]{{");
+                            output.Append($"\\footnote[{EscapeString(fMarker.FootNoteCaller)}]{{");
                             break;
                     }
 
@@ -253,7 +266,7 @@ namespace USFMToolsSharp.Renderers.Latex
                     output.Append($"{fRMarker.VerseReference}");
                     break;
                 case FKMarker fKMarker:
-                    output.Append($" {fKMarker.FootNoteKeyword.ToUpper()}: ");
+                    output.Append($" {EscapeString(fKMarker.FootNoteKeyword).ToUpper()}: ");
                     break;
                 case FQAMarker _:
                     foreach (Marker marker in input.Contents)
@@ -360,6 +373,15 @@ namespace USFMToolsSharp.Renderers.Latex
             }
             previousMarker = input;
             return "";
+        }
+
+        private string EscapeString(string input)
+        {
+            foreach(var item in escapeMapping)
+            {
+                input.Replace(item.find, item.replaceWith);
+            }
+            return input;
         }
     }
 }
