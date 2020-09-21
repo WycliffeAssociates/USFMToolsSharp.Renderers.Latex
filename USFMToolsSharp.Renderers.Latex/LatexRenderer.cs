@@ -41,47 +41,68 @@ namespace USFMToolsSharp.Renderers.Latex
         public string Render(USFMDocument input)
         {
             inputDocument = input;
-            StringBuilder output = new StringBuilder();
+            StringList content = new StringList();
             currentChapterLabel = "";
             NotFirstChapter = false;
             previousChapter = null;
 
-            output.AppendLine("\\documentclass{article}");
-            output.AppendLine("\\usepackage[margin=0.5in]{geometry}");
-            output.AppendLine("\\usepackage{multicol}");
+            content.AppendLine("\\documentclass{article}");
+            content.AppendLine("\\usepackage[margin=0.5in]{geometry}");
+            content.AppendLine("\\usepackage{multicol}");
             if (!string.IsNullOrEmpty(config.Font))
             {
-                output.AppendLine("\\usepackage{fontspec}");
-                output.AppendLine("\\usepackage{polyglossia}");
-                output.AppendLine($"\\setmainfont{{{config.Font}}}");
+                content.AppendLine("\\usepackage{fontspec}");
+                content.AppendLine("\\usepackage{polyglossia}");
+                content.AppendLine($"\\setmainfont{{{config.Font}}}");
             }
-            output.AppendLine("\\begin{document}");
-            output.AppendLine("\\pagenumbering{gobble}");
+            content.AppendLine("\\begin{document}");
+            content.AppendLine("\\pagenumbering{gobble}");
             if(config.LineSpacing != 1.0)
             {
-                output.AppendLine($"\\renewcommand{{\\baselinestretch}}{{{config.LineSpacing}}}");
+                content.AppendLine($"\\renewcommand{{\\baselinestretch}}{{{config.LineSpacing}}}");
             }
             if(config.Columns != 1)
             {
-                output.AppendLine("\\begin{multicols}{" + config.Columns + "}");
+                content.AppendLine("\\begin{multicols}{" + config.Columns + "}");
             }
 
             foreach (Marker marker in input.Contents)
             {
-                output.Append(RenderMarker(marker, output));
+                content.Append(RenderMarker(marker, content));
             }
 
             if(config.Columns != 1)
             {
-                output.AppendLine("\\end{multicols}");
+                content.AppendLine("\\end{multicols}");
             }
 
-            output.AppendLine("\\end{document}");
+            content.AppendLine("\\end{document}");
+
+            // With all these strings I'm murdering this poor memory. I'm sorry GC
+            var output = new StringBuilder(content.Count);
+
+            for(var i = 0; i < content.Count; i++)
+            {
+                if (i != 0 && content[i] == "\\newline" + Environment.NewLine )
+                {
+                    if (content[i-1].Trim().EndsWith("}"))
+                    {
+                        continue;
+                    }
+
+                    if (string.IsNullOrWhiteSpace(content[i - 1]) && content[i - 2].Trim().EndsWith("}"))
+                    {
+                        continue;
+                    }
+                }
+
+                output.Append(content[i]);
+            }
 
             return string.Join("\n", output.ToString().Split('\n').Where(e => !string.IsNullOrWhiteSpace(e)));
         }
 
-        public string RenderMarker(Marker input, StringBuilder output)
+        public string RenderMarker(Marker input, StringList output)
         {
             switch (input)
             {
@@ -275,10 +296,10 @@ namespace USFMToolsSharp.Renderers.Latex
                     }
                     break;
                 case BMarker bMarker:
-                    output.Append("\\newline");
+                    output.AppendLine("\\newline");
                     break;
                 case SMarker sMarker:
-                    output.AppendLine("\\section*{" + sMarker.Text + "}");
+                    output.AppendLine("\\section*{" + sMarker.Text.Trim() + "}");
                     foreach (Marker marker in input.Contents)
                     {
                         output.Append(RenderMarker(marker, output));
@@ -316,6 +337,10 @@ namespace USFMToolsSharp.Renderers.Latex
                     }
                     break;
                 case DMarker dMarker:
+                    if (string.IsNullOrEmpty(dMarker.Description))
+                    {
+                        break;
+                    }
                     output.AppendLine("\\begin{center}");
                     output.AppendLine("\\begin{textit}");
                     output.AppendLine(dMarker.Description);
@@ -377,9 +402,13 @@ namespace USFMToolsSharp.Renderers.Latex
 
         private string EscapeString(string input)
         {
+            if (input.Contains("_"))
+            {
+
+            }
             foreach(var item in escapeMapping)
             {
-                input.Replace(item.find, item.replaceWith);
+                input = input.Replace(item.find, item.replaceWith);
             }
             return input;
         }
