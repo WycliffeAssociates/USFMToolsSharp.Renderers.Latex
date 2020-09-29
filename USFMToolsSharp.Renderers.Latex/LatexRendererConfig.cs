@@ -11,5 +11,6 @@ namespace USFMToolsSharp.Renderers.Latex
         public bool SeparateChapters = false;
         public bool SeparateVerses = false;
         public string Font = "";
+        public bool RightToLeft = false;
     }
 }

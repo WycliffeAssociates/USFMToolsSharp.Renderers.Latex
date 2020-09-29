@@ -55,7 +55,15 @@ namespace USFMToolsSharp.Renderers.Latex
                 content.AppendLine("\\usepackage{polyglossia}");
                 content.AppendLine($"\\setmainfont{{{config.Font}}}");
             }
+            if (config.RightToLeft)
+            {
+                content.AppendLine("\\usepackage{bidi}");
+            }
             content.AppendLine("\\begin{document}");
+            if (config.RightToLeft)
+            {
+                content.AppendLine("\\setRTL");
+            }
             content.AppendLine("\\pagenumbering{gobble}");
             if(config.LineSpacing != 1.0)
             {
