@@ -83,7 +83,7 @@ namespace USFMToolsSharp.Renderers.Latex
 
             for(var i = 0; i < content.Count; i++)
             {
-                if (i != 0 && content[i] == "\\newline" + Environment.NewLine )
+                if (i != 0 && content[i].Trim() == "\\newline")
                 {
                     if (content[i-1].Trim().EndsWith("}"))
                     {
@@ -94,11 +94,17 @@ namespace USFMToolsSharp.Renderers.Latex
                     {
                         continue;
                     }
+
+                    // two newlines after each other cause a problem in some cases
+                    if (content[i-1].Trim() == "\\newline")
+                    {
+                        continue;
+                    }
                 }
 
                 output.Append(content[i]);
             }
-
+            //return output.ToString();
             return string.Join("\n", output.ToString().Split('\n').Where(e => !string.IsNullOrWhiteSpace(e)));
         }
 

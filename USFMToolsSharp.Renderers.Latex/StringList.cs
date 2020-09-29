@@ -18,12 +18,23 @@ namespace USFMToolsSharp.Renderers.Latex
             {
                 return;
             }
+
+            if (content == string.Empty)
+            {
+                return;
+            }
+
             Contents.Add(content);
         }
 
         public void AppendLine(string content)
         {
             if (content == Environment.NewLine)
+            {
+                return;
+            }
+
+            if (content == string.Empty)
             {
                 return;
             }
